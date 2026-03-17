@@ -61,21 +61,26 @@ Heart attack risk (0 = No Risk, 1 = High Risk)
 # ❤️ Heart Attack Prediction System
 
 ## Main Interface
-![Main Interface](preview-of-heart-prediction.png)
+<img width="1892" height="867" alt="Screenshot 2026-03-17 103158" src="https://github.com/user-attachments/assets/7f04c7be-70aa-4356-b4da-29858cd4a632" />
+
 
 ## Prediction Output Example
-![Prediction Output](preview-of-heart-attack-prediction-output.png)
+<img width="1837" height="852" alt="Screenshot 2026-03-17 103342" src="https://github.com/user-attachments/assets/a507b150-3406-4388-bb19-72f7e833ed47" />
+
 
 ## Code Preview
 
 ### Code Preview 1
-![Code Preview 1](code-preview-1.png)
+<img width="1907" height="912" alt="Screenshot 2026-03-17 103729" src="https://github.com/user-attachments/assets/710fd70b-55b6-4b6c-bcbe-47f1cb587953" />
+
 
 ### Code Preview 2
-![Code Preview 2](code-preview-2.png)
+<img width="1915" height="913" alt="Screenshot 2026-03-17 103608" src="https://github.com/user-attachments/assets/27833a8b-2224-497a-8770-a7a6ef9ec771" />
+
 
 ### Code Preview 3
-![Code Preview 3](code-preview-3.png)
+<img width="1916" height="912" alt="Screenshot 2026-03-17 103836" src="https://github.com/user-attachments/assets/5b59ab28-6041-4731-89c7-f354dfaa4c50" />
+
 
 
 
