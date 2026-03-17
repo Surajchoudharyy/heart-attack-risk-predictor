@@ -1,0 +1,1060 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Heart Attack Risk Predictor</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --red: #dc2626;
+      --red-dark: #991b1b;
+      --red-light: #f87171;
+      --green: #059669;
+      --green-light: #34d399;
+      --bg: #0a0a0f;
+      --bg-card: rgba(255,255,255,0.03);
+      --border: rgba(255,255,255,0.07);
+      --text: #e8e6f0;
+      --muted: #9ca3af;
+      --hint: #4b5563;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 2.5rem 1.5rem 4rem;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    /* Background glows */
+    body::before {
+      content: '';
+      position: fixed;
+      top: -250px; left: -250px;
+      width: 700px; height: 700px;
+      background: radial-gradient(circle, rgba(220,38,38,0.07) 0%, transparent 65%);
+      pointer-events: none;
+      z-index: 0;
+    }
+    body::after {
+      content: '';
+      position: fixed;
+      bottom: -150px; right: -150px;
+      width: 500px; height: 500px;
+      background: radial-gradient(circle, rgba(139,92,246,0.05) 0%, transparent 65%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .container {
+      max-width: 680px;
+      margin: 0 auto;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ── HEADER ── */
+    .header {
+      text-align: center;
+      margin-bottom: 2.5rem;
+    }
+
+    .pulse-icon {
+      width: 60px; height: 60px;
+      background: linear-gradient(135deg, var(--red), var(--red-dark));
+      border-radius: 18px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 1.1rem;
+      box-shadow: 0 0 48px rgba(220,38,38,0.28);
+      animation: pulse-glow 2.5s ease-in-out infinite;
+    }
+
+    @keyframes pulse-glow {
+      0%, 100% { box-shadow: 0 0 48px rgba(220,38,38,0.28); }
+      50%       { box-shadow: 0 0 72px rgba(220,38,38,0.45); }
+    }
+
+    .pulse-icon svg { width: 32px; height: 32px; }
+
+    h1 {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(26px, 5vw, 36px);
+      font-weight: 800;
+      background: linear-gradient(135deg, #fff 30%, var(--red-light));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      letter-spacing: -0.5px;
+      line-height: 1.1;
+    }
+
+    .subtitle {
+      font-size: 14px;
+      color: var(--hint);
+      margin-top: 8px;
+      font-weight: 300;
+      letter-spacing: 0.4px;
+    }
+
+    /* ── CARDS ── */
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 1.6rem;
+      margin-bottom: 1.1rem;
+      backdrop-filter: blur(8px);
+      transition: border-color 0.3s;
+    }
+    .card:hover { border-color: rgba(255,255,255,0.12); }
+
+    .section-label {
+      font-family: 'Syne', sans-serif;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      color: var(--red);
+      margin-bottom: 1.3rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .section-label::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: rgba(220,38,38,0.18);
+    }
+
+    /* ── GRID LAYOUTS ── */
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+    .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+
+    @media (max-width: 520px) {
+      .grid-3 { grid-template-columns: 1fr 1fr; }
+      .grid-2 { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 360px) {
+      .grid-3 { grid-template-columns: 1fr; }
+    }
+
+    /* ── FORM FIELDS ── */
+    .field { display: flex; flex-direction: column; gap: 6px; }
+
+    .field label {
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--muted);
+      letter-spacing: 0.3px;
+    }
+
+    .field input,
+    .field select {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 10px;
+      color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      padding: 10px 13px;
+      outline: none;
+      width: 100%;
+      transition: border-color 0.2s, background 0.2s;
+      appearance: none;
+      -webkit-appearance: none;
+    }
+
+    .field input:focus,
+    .field select:focus {
+      border-color: rgba(220,38,38,0.5);
+      background: rgba(220,38,38,0.04);
+    }
+
+    .field input::placeholder { color: var(--hint); }
+
+    .field select {
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      padding-right: 32px;
+    }
+
+    .field select option { background: #1a1a2e; color: var(--text); }
+
+    .hint {
+      font-size: 10.5px;
+      color: var(--hint);
+      margin-top: 1px;
+    }
+
+    /* ── BUTTON ── */
+    .predict-btn {
+      width: 100%;
+      padding: 17px;
+      background: linear-gradient(135deg, var(--red), var(--red-dark));
+      border: none;
+      border-radius: 14px;
+      color: white;
+      font-family: 'Syne', sans-serif;
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 0.6px;
+      cursor: pointer;
+      margin-top: 0.4rem;
+      box-shadow: 0 8px 32px rgba(220,38,38,0.28);
+      transition: transform 0.15s, box-shadow 0.15s, opacity 0.15s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 9px;
+    }
+    .predict-btn:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 14px 40px rgba(220,38,38,0.4);
+    }
+    .predict-btn:active:not(:disabled) { transform: translateY(0); }
+    .predict-btn:disabled { opacity: 0.55; cursor: not-allowed; }
+
+    /* ── RESULT BOX ── */
+    .result-box {
+      border-radius: 16px;
+      padding: 0;
+      margin-top: 1.2rem;
+      display: none;
+      animation: fadeUp 0.45s ease forwards;
+      background: linear-gradient(160deg, rgba(5,15,30,0.97) 0%, rgba(8,20,40,0.95) 100%);
+      border: 1px solid rgba(52,211,153,0.25);
+      box-shadow: 0 0 40px rgba(52,211,153,0.08), inset 0 0 60px rgba(52,211,153,0.03);
+      overflow: hidden;
+      position: relative;
+    }
+    .result-box.high {
+      border-color: rgba(248,113,113,0.3);
+      box-shadow: 0 0 40px rgba(248,113,113,0.1), inset 0 0 60px rgba(248,113,113,0.04);
+    }
+    /* Scanline overlay */
+    .result-box::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 3px,
+        rgba(255,255,255,0.012) 3px,
+        rgba(255,255,255,0.012) 4px
+      );
+      pointer-events: none;
+      z-index: 0;
+    }
+    /* Moving scan beam */
+    .scan-beam {
+      position: absolute;
+      left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, rgba(52,211,153,0.18), transparent);
+      animation: scanMove 3s linear infinite;
+      pointer-events: none;
+      z-index: 2;
+    }
+    .result-box.high .scan-beam {
+      background: linear-gradient(90deg, transparent, rgba(248,113,113,0.18), transparent);
+    }
+    @keyframes scanMove {
+      0%   { top: 0%; }
+      100% { top: 100%; }
+    }
+    /* Corner accent */
+    .result-box::after {
+      content: '';
+      position: absolute;
+      bottom: 0; right: 0;
+      width: 28px; height: 28px;
+      border-bottom: 2px solid rgba(52,211,153,0.4);
+      border-right: 2px solid rgba(52,211,153,0.4);
+      pointer-events: none;
+    }
+    .result-box.high::after {
+      border-color: rgba(248,113,113,0.4);
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(14px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Prediction Output Header */
+    .result-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 13px 20px;
+      border-bottom: 1px solid rgba(52,211,153,0.12);
+      position: relative; z-index: 1;
+      background: rgba(52,211,153,0.04);
+    }
+    .result-box.high .result-header {
+      border-bottom-color: rgba(248,113,113,0.15);
+      background: rgba(248,113,113,0.04);
+    }
+    .result-header-bar {
+      width: 3px; height: 16px;
+      border-radius: 2px;
+      background: var(--green-light);
+      box-shadow: 0 0 8px rgba(52,211,153,0.6);
+    }
+    .result-box.high .result-header-bar {
+      background: var(--red-light);
+      box-shadow: 0 0 8px rgba(248,113,113,0.6);
+    }
+    .result-header-label {
+      font-family: 'Syne', sans-serif;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: rgba(52,211,153,0.7);
+    }
+    .result-box.high .result-header-label { color: rgba(248,113,113,0.7); }
+
+    /* Diagnosis banner */
+    .diagnosis-banner {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin: 16px 20px;
+      padding: 16px 18px;
+      border-radius: 12px;
+      background: rgba(52,211,153,0.06);
+      border: 1px solid rgba(52,211,153,0.2);
+      position: relative; z-index: 1;
+      box-shadow: inset 0 0 20px rgba(52,211,153,0.04);
+    }
+    .result-box.high .diagnosis-banner {
+      background: rgba(248,113,113,0.06);
+      border-color: rgba(248,113,113,0.22);
+      box-shadow: inset 0 0 20px rgba(248,113,113,0.04);
+    }
+    .diagnosis-check {
+      width: 38px; height: 38px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      background: rgba(52,211,153,0.12);
+      border: 1px solid rgba(52,211,153,0.3);
+      box-shadow: 0 0 16px rgba(52,211,153,0.2);
+    }
+    .result-box.high .diagnosis-check {
+      background: rgba(248,113,113,0.12);
+      border-color: rgba(248,113,113,0.3);
+      box-shadow: 0 0 16px rgba(248,113,113,0.2);
+    }
+    .diagnosis-check svg { width:18px; height:18px; }
+
+    .diagnosis-text { display: flex; flex-direction: column; gap: 3px; }
+    .diagnosis-label {
+      font-family: 'Syne', sans-serif;
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      color: rgba(52,211,153,0.55);
+    }
+    .result-box.high .diagnosis-label { color: rgba(248,113,113,0.55); }
+    .diagnosis-result {
+      font-family: 'Syne', sans-serif;
+      font-size: 22px;
+      font-weight: 800;
+      color: #34d399;
+      line-height: 1.1;
+      text-shadow: 0 0 20px rgba(52,211,153,0.4);
+    }
+    .result-box.high .diagnosis-result {
+      color: #f87171;
+      text-shadow: 0 0 20px rgba(248,113,113,0.4);
+    }
+
+    /* Donut + breakdown layout */
+    .result-body {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      padding: 8px 20px 22px;
+      position: relative; z-index: 1;
+    }
+    @media (max-width: 480px) {
+      .result-body { flex-direction: column; }
+    }
+
+    /* Donut chart */
+    .donut-wrap {
+      position: relative;
+      width: 170px; height: 170px;
+      flex-shrink: 0;
+    }
+    .donut-wrap canvas { width: 170px!important; height: 170px!important; }
+    .donut-center {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      pointer-events: none;
+    }
+    .donut-pct {
+      font-family: 'Syne', sans-serif;
+      font-size: 24px;
+      font-weight: 800;
+      color: #34d399;
+      line-height: 1;
+      text-shadow: 0 0 18px rgba(52,211,153,0.5);
+      animation: flicker 4s ease-in-out infinite;
+    }
+    @keyframes flicker {
+      0%,100%{opacity:1} 92%{opacity:1} 93%{opacity:0.85} 94%{opacity:1}
+    }
+    .result-box.high .donut-pct {
+      color: #f87171;
+      text-shadow: 0 0 18px rgba(248,113,113,0.5);
+    }
+    .donut-sublabel {
+      font-size: 8px;
+      font-weight: 600;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    /* Probability breakdown */
+    .prob-breakdown { flex: 1; display: flex; flex-direction: column; gap: 10px; }
+
+    .prob-breakdown-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.35);
+      display: flex; align-items: center; gap: 8px;
+      margin-bottom: 4px;
+    }
+    .prob-breakdown-title::before {
+      content: '';
+      width: 3px; height: 13px;
+      background: rgba(255,255,255,0.15);
+      border-radius: 2px;
+      flex-shrink: 0;
+    }
+
+    .prob-card {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 13px 16px;
+      border-radius: 10px;
+      background: rgba(255,255,255,0.025);
+      border: 1px solid rgba(255,255,255,0.07);
+      transition: border-color 0.2s;
+    }
+    .prob-card:hover { border-color: rgba(255,255,255,0.12); }
+    .prob-card-left { display: flex; align-items: center; gap: 10px; }
+    .prob-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+    .prob-dot.red-dot  { background: #f87171; box-shadow: 0 0 10px rgba(248,113,113,0.7); }
+    .prob-dot.blue-dot { background: #38bdf8; box-shadow: 0 0 10px rgba(56,189,248,0.7); }
+    .prob-card-name {
+      font-family: 'Syne', sans-serif;
+      font-size: 11.5px;
+      color: rgba(200,200,210,0.7);
+      font-weight: 500;
+      letter-spacing: 0.3px;
+    }
+    .prob-card-val {
+      font-family: 'Syne', sans-serif;
+      font-size: 17px;
+      font-weight: 700;
+    }
+    .prob-card-val.red-val  { color: #f87171; text-shadow: 0 0 14px rgba(248,113,113,0.5); }
+    .prob-card-val.blue-val { color: #38bdf8; text-shadow: 0 0 14px rgba(56,189,248,0.5); }
+
+    /* ── ERROR BOX ── */
+    .error-box {
+      background: rgba(220,38,38,0.06);
+      border: 1px solid rgba(220,38,38,0.22);
+      border-radius: 12px;
+      padding: 13px 16px;
+      font-size: 13px;
+      color: var(--red-light);
+      margin-top: 1rem;
+      display: none;
+    }
+
+    /* ── LOADING DOTS ── */
+    .loading-dots {
+      display: inline-flex;
+      gap: 5px;
+      align-items: center;
+    }
+    .loading-dots span {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: white;
+      animation: dot 1.2s infinite;
+    }
+    .loading-dots span:nth-child(2) { animation-delay: 0.2s; }
+    .loading-dots span:nth-child(3) { animation-delay: 0.4s; }
+
+    @keyframes dot {
+      0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
+      40%           { transform: scale(1);   opacity: 1; }
+    }
+
+    /* ── FOOTER CHIPS ── */
+    .info-strip {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 1.4rem;
+    }
+    .info-chip {
+      font-size: 11px;
+      padding: 4px 11px;
+      border-radius: 99px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.08);
+      color: var(--hint);
+    }
+
+    /* ── DISCLAIMER ── */
+    .disclaimer {
+      text-align: center;
+      font-size: 11px;
+      color: var(--hint);
+      margin-top: 2rem;
+      line-height: 1.7;
+    }
+
+    /* ── RISK GAUGE ── */
+    .risk-gauge-wrap {
+      margin: 0 20px 20px;
+      padding: 18px 20px;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.025);
+      border: 1px solid rgba(255,255,255,0.07);
+      position: relative;
+      z-index: 1;
+    }
+    .risk-gauge-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: 14px;
+    }
+    .risk-gauge-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 9px;
+      font-weight: 600;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.35);
+    }
+    .risk-gauge-score {
+      font-family: 'Syne', sans-serif;
+      font-size: 28px;
+      font-weight: 800;
+      line-height: 1;
+    }
+    .risk-gauge-score .score-unit {
+      font-size: 14px;
+      font-weight: 500;
+      color: rgba(255,255,255,0.45);
+      margin-left: 2px;
+    }
+    .risk-gauge-score.low-score  { color: #34d399; text-shadow: 0 0 20px rgba(52,211,153,0.5); }
+    .risk-gauge-score.high-score { color: #f87171; text-shadow: 0 0 20px rgba(248,113,113,0.5); }
+
+    .risk-track {
+      position: relative;
+      height: 14px;
+      border-radius: 99px;
+      background: linear-gradient(90deg,
+        #059669 0%,
+        #34d399 25%,
+        #fbbf24 50%,
+        #f87171 75%,
+        #dc2626 100%
+      );
+      box-shadow: 0 2px 12px rgba(0,0,0,0.4);
+    }
+    .risk-track-overlay {
+      position: absolute;
+      inset: 0;
+      border-radius: 99px;
+      background: rgba(0,0,0,0.38);
+    }
+    .risk-needle {
+      position: absolute;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      width: 22px; height: 22px;
+      border-radius: 50%;
+      background: white;
+      box-shadow: 0 0 0 3px rgba(255,255,255,0.2), 0 4px 14px rgba(0,0,0,0.6);
+      transition: left 1s cubic-bezier(0.34,1.56,0.64,1);
+      z-index: 2;
+    }
+    .risk-needle::after {
+      content: '';
+      position: absolute;
+      inset: 4px;
+      border-radius: 50%;
+      background: #0a0a0f;
+    }
+    .risk-labels {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 8px;
+    }
+    .risk-labels span {
+      font-size: 10px;
+      color: var(--hint);
+      font-weight: 500;
+    }
+    .risk-zone-label {
+      text-align: center;
+      margin-top: 10px;
+      font-family: 'Syne', sans-serif;
+      font-size: 11px;
+      font-weight: 600;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+    }
+    .risk-zone-label.zone-low    { color: #34d399; }
+    .risk-zone-label.zone-medium { color: #fbbf24; }
+    .risk-zone-label.zone-high   { color: #f87171; }
+  </style>
+</head>
+<body>
+  <div class="container">
+
+    <!-- Header -->
+    <div class="header">
+      <div class="pulse-icon">
+        <svg viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M3 15h4l3-8 4 16 3-10 2 4h8" stroke="white" stroke-width="2.2"
+                stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <h1>Heart Attack<br>Risk Predictor</h1>
+      <p class="subtitle">ML-powered cardiovascular risk assessment · UCI Heart Disease Dataset</p>
+    </div>
+
+    <!-- Section 1: Demographics -->
+    <div class="card">
+      <div class="section-label">Patient Demographics</div>
+      <div class="grid-2">
+        <div class="field">
+          <label>Age (years)</label>
+          <input type="number" id="age" placeholder="e.g. 52" min="1" max="120">
+        </div>
+        <div class="field">
+          <label>Sex</label>
+          <select id="sex">
+            <option value="">Select</option>
+            <option value="1">Male</option>
+            <option value="0">Female</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 2: Clinical Measurements -->
+    <div class="card">
+      <div class="section-label">Clinical Measurements</div>
+      <div class="grid-2">
+        <div class="field">
+          <label>Resting Blood Pressure (mmHg)</label>
+          <input type="number" id="trestbps" placeholder="e.g. 130">
+          <span class="hint">Normal range: 90 – 120 mmHg</span>
+        </div>
+        <div class="field">
+          <label>Serum Cholesterol (mg/dl)</label>
+          <input type="number" id="chol" placeholder="e.g. 250">
+          <span class="hint">Optimal: &lt; 200 mg/dl</span>
+        </div>
+        <div class="field">
+          <label>Max Heart Rate Achieved</label>
+          <input type="number" id="thalach" placeholder="e.g. 150">
+          <span class="hint">thalach — exercise treadmill</span>
+        </div>
+        <div class="field">
+          <label>ST Depression (oldpeak)</label>
+          <input type="number" id="oldpeak" placeholder="e.g. 1.2" step="0.1">
+          <span class="hint">Induced by exercise vs rest</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section 3: Diagnostic Indicators -->
+    <div class="card">
+      <div class="section-label">Diagnostic Indicators</div>
+      <div class="grid-3">
+        <div class="field">
+          <label>Chest Pain Type (cp)</label>
+          <select id="cp">
+            <option value="">Select</option>
+            <option value="0">Typical Angina</option>
+            <option value="1">Atypical Angina</option>
+            <option value="2">Non-anginal Pain</option>
+            <option value="3">Asymptomatic</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Fasting Blood Sugar</label>
+          <select id="fbs">
+            <option value="">Select</option>
+            <option value="1">&gt; 120 mg/dl  (True)</option>
+            <option value="0">≤ 120 mg/dl  (False)</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Resting ECG (restecg)</label>
+          <select id="restecg">
+            <option value="">Select</option>
+            <option value="0">Normal</option>
+            <option value="1">ST-T Abnormality</option>
+            <option value="2">LV Hypertrophy</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Exercise-Induced Angina</label>
+          <select id="exang">
+            <option value="">Select</option>
+            <option value="1">Yes</option>
+            <option value="0">No</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>ST Slope (slope)</label>
+          <select id="slope">
+            <option value="">Select</option>
+            <option value="0">Upsloping</option>
+            <option value="1">Flat</option>
+            <option value="2">Downsloping</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Major Vessels Colored (ca)</label>
+          <select id="ca">
+            <option value="">Select</option>
+            <option value="0">0</option>
+            <option value="1">1</option>
+            <option value="2">2</option>
+            <option value="3">3</option>
+          </select>
+        </div>
+      </div>
+      <div style="margin-top: 14px;">
+        <div class="field">
+          <label>Thalassemia (thal)</label>
+          <select id="thal">
+            <option value="">Select</option>
+            <option value="1">Normal (1)</option>
+            <option value="2">Fixed Defect (2)</option>
+            <option value="3">Reversible Defect (3)</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Predict Button -->
+    <button class="predict-btn" id="btn" onclick="runPrediction()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+           stroke="currentColor" stroke-width="2.5"
+           stroke-linecap="round" stroke-linejoin="round">
+        <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+      </svg>
+      Analyze Risk
+    </button>
+
+    <!-- Error -->
+    <div class="error-box" id="error-box"></div>
+
+    <!-- Result -->
+    <div class="result-box" id="result-box">
+
+      <!-- Scan beam -->
+      <div class="scan-beam"></div>
+
+      <!-- Header -->
+      <div class="result-header">
+        <div class="result-header-bar" id="result-header-bar"></div>
+        <span class="result-header-label">Prediction Output</span>
+      </div>
+
+      <!-- Diagnosis banner -->
+      <div class="diagnosis-banner" id="diagnosis-banner">
+        <div class="diagnosis-check" id="diagnosis-check">
+          <svg viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2.5"
+               stroke-linecap="round" stroke-linejoin="round" id="check-svg">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+        </div>
+        <div class="diagnosis-text">
+          <span class="diagnosis-label">Diagnosis Result</span>
+          <span class="diagnosis-result" id="result-title"></span>
+        </div>
+      </div>
+
+      <!-- Risk Score Gauge -->
+      <div class="risk-gauge-wrap">
+        <div class="risk-gauge-header">
+          <span class="risk-gauge-title">Risk Score Meter</span>
+          <span class="risk-gauge-score" id="gauge-score">—<span class="score-unit">/ 100</span></span>
+        </div>
+        <div class="risk-track">
+          <div class="risk-track-overlay"></div>
+          <div class="risk-needle" id="risk-needle" style="left:0%"></div>
+        </div>
+        <div class="risk-labels">
+          <span>0 — Very Low</span>
+          <span>25</span>
+          <span>50 — Moderate</span>
+          <span>75</span>
+          <span>100 — Critical</span>
+        </div>
+        <div class="risk-zone-label" id="risk-zone-label"></div>
+      </div>
+
+      <!-- Donut + Breakdown -->
+      <div class="result-body">
+        <div class="donut-wrap">
+          <canvas id="donutChart"></canvas>
+          <div class="donut-center">
+            <div class="donut-pct" id="donut-pct">—</div>
+            <div class="donut-sublabel">Risk Level</div>
+          </div>
+        </div>
+
+        <div class="prob-breakdown">
+          <div class="prob-breakdown-title">Probability Breakdown</div>
+          <div class="prob-card">
+            <div class="prob-card-left">
+              <span class="prob-dot red-dot"></span>
+              <span class="prob-card-name">Heart Attack Risk</span>
+            </div>
+            <span class="prob-card-val red-val" id="prob-yes-label">—</span>
+          </div>
+          <div class="prob-card">
+            <div class="prob-card-left">
+              <span class="prob-dot blue-dot"></span>
+              <span class="prob-card-name">No Heart Attack</span>
+            </div>
+            <span class="prob-card-val blue-val" id="prob-no-label">—</span>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Footer chips -->
+    <div class="info-strip">
+      <span class="info-chip">Random Forest Classifier</span>
+      <span class="info-chip">UCI Heart Disease Dataset</span>
+      <span class="info-chip">13 Clinical Features</span>
+      <span class="info-chip">Flask + scikit-learn</span>
+    </div>
+
+    <!-- Developer Credit -->
+    <div style="text-align:center; margin: 1.4rem 0 0.4rem;">
+      <span style="
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        background: linear-gradient(135deg, rgba(52,211,153,0.08), rgba(56,189,248,0.08));
+        border: 1px solid rgba(52,211,153,0.2);
+        border-radius: 50px;
+        padding: 9px 22px;
+        font-family: 'Syne', sans-serif;
+        font-size: 12.5px;
+        font-weight: 600;
+        color: rgba(200,200,210,0.7);
+        letter-spacing: 0.5px;
+      ">
+        Developed by <span style="color:#34d399; margin-left:4px; text-shadow: 0 0 12px rgba(52,211,153,0.4);">Suraj Choudhary</span>
+      </span>
+    </div>
+
+    <p class="disclaimer">
+      ⚠️ This tool is for educational &amp; demonstration purposes only.<br>
+      It is <strong>not</strong> a substitute for professional medical advice.
+    </p>
+
+  </div><!-- /container -->
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script>
+    let donutInstance = null;
+
+    async function runPrediction() {
+      const ids = ['age','sex','cp','trestbps','chol','fbs','restecg','thalach','exang','oldpeak','slope','ca','thal'];
+      const errorBox  = document.getElementById('error-box');
+      const resultBox = document.getElementById('result-box');
+      const btn       = document.getElementById('btn');
+
+      errorBox.style.display  = 'none';
+      resultBox.style.display = 'none';
+
+      for (const id of ids) {
+        const val = document.getElementById(id).value;
+        if (val === '' || val === null) {
+          errorBox.textContent = 'Please fill in all fields before analyzing.';
+          errorBox.style.display = 'block';
+          errorBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          return;
+        }
+      }
+
+      btn.disabled = true;
+      btn.innerHTML = '<div class="loading-dots"><span></span><span></span><span></span></div> Analyzing...';
+
+      const payload = {};
+      ids.forEach(id => payload[id] = document.getElementById(id).value);
+
+      try {
+        const response = await fetch('/predict', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) throw new Error('Server error: ' + response.status);
+        const result = await response.json();
+
+        const isHigh = result.prediction.toLowerCase().includes('high');
+        const probYes = parseFloat(result.prob_yes);
+        const probNo  = parseFloat(result.prob_no);
+
+        // Set classes
+        resultBox.className = 'result-box ' + (isHigh ? 'high' : 'low');
+
+        // Banner icon color
+        const checkSvg = document.getElementById('check-svg');
+        if (isHigh) {
+          checkSvg.setAttribute('stroke', '#f87171');
+          checkSvg.innerHTML = '<path d="M18 6L6 18M6 6l12 12"/>';
+        } else {
+          checkSvg.setAttribute('stroke', '#34d399');
+          checkSvg.innerHTML = '<polyline points="20 6 9 17 4 12"/>';
+        }
+
+        document.getElementById('result-title').textContent = result.prediction;
+        document.getElementById('prob-yes-label').textContent = probYes.toFixed(2) + '%';
+        document.getElementById('prob-no-label').textContent  = probNo.toFixed(2)  + '%';
+        document.getElementById('donut-pct').textContent = probYes.toFixed(2) + '%';
+
+        // ── Risk Gauge ──
+        const gaugeScore = document.getElementById('gauge-score');
+        const needle     = document.getElementById('risk-needle');
+        const zoneLabel  = document.getElementById('risk-zone-label');
+
+        // Animate score count-up
+        let start = 0, target = probYes, duration = 900;
+        let startTime = null;
+        function countUp(ts) {
+          if (!startTime) startTime = ts;
+          const progress = Math.min((ts - startTime) / duration, 1);
+          const eased = 1 - Math.pow(1 - progress, 3);
+          gaugeScore.innerHTML = (start + (target - start) * eased).toFixed(1) + '<span class="score-unit">/ 100</span>';
+          if (progress < 1) requestAnimationFrame(countUp);
+          else gaugeScore.innerHTML = target.toFixed(1) + '<span class="score-unit">/ 100</span>';
+        }
+        requestAnimationFrame(countUp);
+
+        // Needle position (clamp between 2% and 98% so it stays visible)
+        const needlePct = Math.min(Math.max(probYes, 2), 98);
+        setTimeout(() => { needle.style.left = needlePct + '%'; }, 80);
+
+        // Score color
+        gaugeScore.className = 'risk-gauge-score ' + (isHigh ? 'high-score' : 'low-score');
+
+        // Zone label
+        let zone, zoneClass;
+        if (probYes < 30)      { zone = '● Low Risk Zone';      zoneClass = 'zone-low'; }
+        else if (probYes < 60) { zone = '● Moderate Risk Zone'; zoneClass = 'zone-medium'; }
+        else                   { zone = '● High Risk Zone';     zoneClass = 'zone-high'; }
+        zoneLabel.textContent = zone;
+        zoneLabel.className = 'risk-zone-label ' + zoneClass;
+
+
+        resultBox.style.display = 'block';
+
+        // Draw / update donut
+        setTimeout(() => {
+          const ctx = document.getElementById('donutChart').getContext('2d');
+          if (donutInstance) donutInstance.destroy();
+          donutInstance = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+              datasets: [{
+                data: [probYes, probNo],
+                backgroundColor: ['#f87171', '#38bdf8'],
+                hoverBackgroundColor: ['#ef4444', '#0ea5e9'],
+                borderWidth: 0,
+                borderRadius: 6,
+                spacing: 4,
+              }]
+            },
+            options: {
+              cutout: '74%',
+              plugins: { legend: { display: false }, tooltip: { enabled: false } },
+              animation: { duration: 1000, easing: 'easeInOutQuart' },
+            },
+            plugins: [{
+              id: 'darkBg',
+              beforeDraw(chart) {
+                const { ctx, chartArea: { left, top, width, height } } = chart;
+                const cx = left + width / 2, cy = top + height / 2;
+                const r = Math.min(width, height) / 2;
+                ctx.save();
+                ctx.beginPath();
+                ctx.arc(cx, cy, r, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(5,15,30,0.6)';
+                ctx.fill();
+                ctx.restore();
+              }
+            }]
+          });
+        }, 80);
+
+        resultBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+      } catch (err) {
+        errorBox.textContent = 'Prediction failed: ' + err.message + '. Make sure the Flask server is running.';
+        errorBox.style.display = 'block';
+      }
+
+      btn.disabled = false;
+      btn.innerHTML = `
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2.5"
+             stroke-linecap="round" stroke-linejoin="round">
+          <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+        </svg>
+        Analyze Risk`;
+    }
+  </script>
+</body>
+</html>
