@@ -217,5 +217,5 @@ Data Visualization
 
 # Author
 
-Suraj  
+Suraj Choudhary
 Data Science & Machine Learning Enthusiast
